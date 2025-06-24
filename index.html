@@ -616,10 +616,13 @@
             let revenueIndex = -1;
             
             headers.forEach((header, index) => {
-                if (header.includes('postcode') || header.includes('post code')) {
+                const headerStr = String(header); // Ensure it's a string
+                if (headerStr.indexOf('postcode') !== -1 || headerStr.indexOf('post code') !== -1) {
                     postcodeIndex = index;
                 }
-                if (header.includes('revenue') || header.includes('value') || header.includes('price') || header.includes('amount') || header.includes('job value')) {
+                if (headerStr.indexOf('revenue') !== -1 || headerStr.indexOf('value') !== -1 || 
+                    headerStr.indexOf('price') !== -1 || headerStr.indexOf('amount') !== -1 || 
+                    headerStr.indexOf('job value') !== -1) {
                     revenueIndex = index;
                 }
             });
@@ -627,6 +630,7 @@
             // If we can't find the columns, return empty array
             if (postcodeIndex === -1 || revenueIndex === -1) {
                 console.warn('Could not find postcode or revenue columns in CSV');
+                console.log('Headers found:', headers);
                 return [];
             }
             
@@ -640,28 +644,30 @@
                 const parts = line.split(/[,;]/).map(p => p.trim().replace(/['"]/g, ''));
                 
                 if (parts.length > Math.max(postcodeIndex, revenueIndex)) {
-                    const postcodeRaw = parts[postcodeIndex];
-                    const revenueRaw = parts[revenueIndex];
+                    const postcodeRaw = parts[postcodeIndex] || '';
+                    const revenueRaw = parts[revenueIndex] || '';
+                    
+                    // Convert to strings and check for invalid entries
+                    const postcodeStr = String(postcodeRaw).toLowerCase();
+                    const revenueStr = String(revenueRaw).toLowerCase();
                     
                     // Skip empty, null, or N/A entries
                     if (!postcodeRaw || !revenueRaw || 
-                        postcodeRaw.toLowerCase() === 'n/a' || 
-                        revenueRaw.toLowerCase() === 'n/a' ||
-                        postcodeRaw.toLowerCase() === 'null' ||
-                        revenueRaw.toLowerCase() === 'null' ||
-                        postcodeRaw === '' || revenueRaw === '') {
+                        postcodeStr === 'n/a' || revenueStr === 'n/a' ||
+                        postcodeStr === 'null' || revenueStr === 'null' ||
+                        postcodeStr === '' || revenueStr === '') {
                         continue;
                     }
                     
                     // Clean and validate postcode
-                    const postcode = postcodeRaw.trim().toUpperCase();
+                    const postcode = String(postcodeRaw).trim().toUpperCase();
                     // Basic UK postcode validation (letters and numbers only, reasonable length)
                     if (!/^[A-Z0-9\s]{2,8}$/.test(postcode)) {
                         continue;
                     }
                     
                     // Clean and validate revenue
-                    const cleanedRevenue = revenueRaw.replace(/[£$,\s]/g, '');
+                    const cleanedRevenue = String(revenueRaw).replace(/[£$,\s]/g, '');
                     const value = parseFloat(cleanedRevenue);
                     
                     // Skip if not a valid positive number
@@ -669,7 +675,7 @@
                         continue;
                     }
                     
-                    jobs.push({ postcode, value });
+                    jobs.push({ postcode: postcode, value: value });
                 }
             }
             
