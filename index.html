@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profit Postcode Finder™ - Discover Your Most Profitable Service Areas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gold: #C9A961;
+            --dark-gold: #B89A4F;
+            --light-gold: #E5D4A1;
+            --bg-light: #FAF8F5;
+            --bg-dark: #1F2937;
+            --text-dark: #1F2937;
+            --text-light: #6B7280;
+            --white: #FFFFFF;
+            --success: #10B981;
+            --danger: #EF4444;
+            --border: #E5E7EB;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Header */
+        .header {
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 300px;
+            height: auto;
+            object-fit: contain;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, rgba(201, 169, 97, 0.05) 0%, rgba(201, 169, 97, 0.1) 100%);
+            padding: 60px 20px 40px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .hero h1 {
+            font-size: 3em;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--text-dark) 0%, var(--primary-gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 1.25em;
+            color: var(--text-light);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--white);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            transform: translateY(-1px);
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--primary-gold) 0%, var(--dark-gold) 100%);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .step-title {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        /* Upload Section */
+        .upload-area {
+            background: linear-gradient(135deg, rgba(201, 169, 97, 0.05) 0%, rgba(201, 169, 97, 0.1) 100%);
+            border: 2px dashed var(--primary-gold);
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 24px;
+        }
+
+        .upload-area:hover {
+            background: linear-gradient(135deg, rgba(201, 169, 97, 0.1) 0%, rgba(201, 169, 97, 0.15) 100%);
+            border-color: var(--dark-gold);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .upload-area h4 {
+            font-size: 1.25em;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+        }
+
+        .upload-area p {
+            color: var(--text-light);
+            margin-bottom: 16px;
+        }
+
+        .upload-area input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 10px 24px;
+            background: var(--primary-gold);
+            color: var(--white);
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .file-input-label:hover {
+            background: var(--dark-gold);
+            transform: translateY(-1px);
+        }
+
+        /* Form Elements */
+        .job-entry {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding: 16px;
+            background: var(--bg-light);
+            border-radius: 8px;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .job-entry:hover {
+            background: #F3F4F6;
+        }
+
+        .job-entry input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: var(--white);
+        }
+
+        .job-entry input:focus {
+            outline: none;
+            border-color: var(--primary-gold);
+            box-shadow: 0 0 0 3px rgba(201, 169, 97, 0.1);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 14px 32px;
+            background: linear-gradient(135deg, var(--primary-gold) 0%, var(--dark-gold) 100%);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            box-shadow: 0 2px 4px rgba(201, 169, 97, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(201, 169, 97, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            width: 100%;
+            font-size: 1.25em;
+            padding: 18px;
+            margin: 24px 0;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary-gold);
+            border: 2px solid var(--primary-gold);
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-gold);
+            color: var(--white);
+        }
+
+        .btn-remove {
+            background: var(--danger);
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .btn-remove:hover {
+            background: #DC2626;
+        }
+
+        /* Loading State */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary-gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Results Section */
+        #results {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(201, 169, 97, 0.05) 0%, rgba(201, 169, 97, 0.1) 100%);
+            padding: 24px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(201, 169, 97, 0.2);
+        }
+
+        .stat-card h3 {
+            font-size: 2.5em;
+            font-weight: 800;
+            color: var(--primary-gold);
+            margin-bottom: 8px;
+        }
+
+        .stat-card p {
+            color: var(--text-light);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .result-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .result-card:hover {
+            border-color: var(--primary-gold);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .result-card h4 {
+            color: var(--primary-gold);
+            font-size: 1.25em;
+            margin-bottom: 16px;
+        }
+
+        .profit-bar {
+            background: var(--bg-light);
+            height: 32px;
+            border-radius: 16px;
+            overflow: hidden;
+            margin: 16px 0;
+            position: relative;
+        }
+
+        .profit-fill {
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 12px;
+            color: var(--white);
+            font-weight: 700;
+            font-size: 14px;
+            transition: width 1s ease;
+        }
+
+        /* Opportunity Section */
+        .opportunity-section {
+            background: linear-gradient(135deg, rgba(201, 169, 97, 0.05) 0%, rgba(201, 169, 97, 0.1) 100%);
+            border-radius: 16px;
+            padding: 40px;
+            margin: 40px 0;
+            border: 1px solid rgba(201, 169, 97, 0.2);
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin: 24px 0;
+        }
+
+        .comparison-card {
+            background: var(--white);
+            padding: 24px;
+            border-radius: 12px;
+            border: 2px solid;
+        }
+
+        .comparison-card.top {
+            border-color: var(--success);
+        }
+
+        .comparison-card.bottom {
+            border-color: var(--danger);
+        }
+
+        .comparison-card h4 {
+            margin-bottom: 16px;
+            font-size: 1.25em;
+        }
+
+        .comparison-card.top h4 {
+            color: var(--success);
+        }
+
+        .comparison-card.bottom h4 {
+            color: var(--danger);
+        }
+
+        .potential-box {
+            background: var(--white);
+            padding: 32px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 24px;
+            border: 2px solid var(--primary-gold);
+        }
+
+        .potential-box .amount {
+            font-size: 2.5em;
+            font-weight: 800;
+            color: var(--primary-gold);
+            margin: 16px 0;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, var(--primary-gold) 0%, var(--dark-gold) 100%);
+            color: var(--white);
+            padding: 48px;
+            border-radius: 16px;
+            text-align: center;
+            margin-top: 40px;
+            box-shadow: 0 10px 25px rgba(201, 169, 97, 0.3);
+        }
+
+        .cta-section h2 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .cta-section .btn {
+            background: var(--white);
+            color: var(--primary-gold);
+            font-size: 1.25em;
+            padding: 16px 48px;
+            margin-top: 24px;
+        }
+
+        .cta-section .btn:hover {
+            background: var(--bg-light);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--bg-dark);
+            color: var(--white);
+            padding: 40px 0;
+            text-align: center;
+            margin-top: 80px;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .footer-logo img {
+            width: 250px;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .footer p {
+            color: #9CA3AF;
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2em;
+            }
+
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-section {
+                padding: 32px 24px;
+            }
+
+            .cta-section h2 {
+                font-size: 1.75em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="#" class="logo">
+                <img src="https://assets.cdn.filesafe.space/lXfW3IllUK9N32xFZgSP/media/67851a9499f61f76d46c8ec1.png" alt="Leads Alchemist" class="logo-icon">
+            </a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Profit Postcode Finder™</h1>
+        <p style="font-size: 1.5em; font-weight: 600; margin-bottom: 16px;">Stop Wasting Time & Fuel on Unprofitable Jobs</p>
+        <p>Most home improvement businesses don't realize that 80% of their profits come from just 20% of their service areas. Our free tool helps you identify your golden postcodes instantly.</p>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="card">
+            <div class="step-header">
+                <div class="step-number">1</div>
+                <h2 class="step-title">Add Your Recent Jobs (Last 6 Months)</h2>
+            </div>
+            <p style="color: var(--text-light); margin-bottom: 24px;">Upload a CSV or enter manually - we need at least 10 jobs for accurate results</p>
+            
+            <div class="upload-area">
+                <div class="upload-icon">📁</div>
+                <h4>Quick Upload (Recommended)</h4>
+                <p>Export your completed jobs spreadsheet as a CSV file with columns named: <strong>Postcode</strong>, <strong>Job Value</strong> and upload it here</p>
+                <label for="csvFile" class="file-input-label">Choose CSV File</label>
+                <input type="file" id="csvFile" accept=".csv">
+                <p style="font-size: 14px; margin-top: 12px; color: var(--text-light);">Example format: SW1A 1AA, 2500</p>
+            </div>
+
+            <button class="btn btn-primary" onclick="analyzeData()">
+                Analyze My Profitable Postcodes
+            </button>
+
+            <div style="margin-top: 32px;">
+                <h4 style="margin-bottom: 16px; color: var(--text-dark);">✏️ Manual Entry</h4>
+                <div id="jobsList">
+                    <div class="job-entry">
+                        <input type="text" placeholder="Postcode (e.g., SW1A 1AA)" class="postcode-input">
+                        <input type="number" placeholder="Job Value (£)" class="value-input">
+                    </div>
+                </div>
+                <button class="btn btn-secondary" onclick="addJobEntry()" style="margin-top: 12px;">+ Add Another Job</button>
+            </div>
+        </div>
+
+        <div class="loading">
+            <div class="spinner"></div>
+            <p style="color: var(--text-light);">Analyzing your profitable postcodes...</p>
+        </div>
+
+        <div id="results"></div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <img src="https://assets.cdn.filesafe.space/lXfW3IllUK9N32xFZgSP/media/67851a9499f61f76d46c8ec1.png" alt="Leads Alchemist">
+            </div>
+            <p>&copy; 2025 Leads Alchemist. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // CSV parsing function
+        function parseCSV(text) {
+            const lines = text.split('\n');
+            const jobs = [];
+            
+            for (let line of lines) {
+                line = line.trim();
+                if (!line) continue;
+                
+                // Handle both comma and semicolon separators
+                const parts = line.split(/[,;]/).map(p => p.trim());
+                
+                if (parts.length >= 2) {
+                    const postcode = parts[0].replace(/['"]/g, '').trim();
+                    const value = parseFloat(parts[1].replace(/[£$,]/g, ''));
+                    
+                    if (postcode && !isNaN(value)) {
+                        jobs.push({ postcode, value });
+                    }
+                }
+            }
+            
+            return jobs;
+        }
+
+        // Handle CSV file upload
+        document.getElementById('csvFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const csvData = event.target.result;
+                const jobs = parseCSV(csvData);
+                
+                if (jobs.length > 0) {
+                    // Clear existing manual entries
+                    document.getElementById('jobsList').innerHTML = '';
+                    
+                    // Add parsed jobs to the form
+                    jobs.forEach(job => {
+                        const jobEntry = document.createElement('div');
+                        jobEntry.className = 'job-entry';
+                        jobEntry.innerHTML = `
+                            <input type="text" placeholder="Postcode (e.g., SW1A 1AA)" class="postcode-input" value="${job.postcode}">
+                            <input type="number" placeholder="Job Value (£)" class="value-input" value="${job.value}">
+                            <button class="btn btn-remove" onclick="this.parentElement.remove()">Remove</button>
+                        `;
+                        document.getElementById('jobsList').appendChild(jobEntry);
+                    });
+                    
+                    // Update file input label
+                    document.querySelector('.file-input-label').textContent = `✓ Loaded ${jobs.length} jobs`;
+                    setTimeout(() => {
+                        document.querySelector('.file-input-label').textContent = 'Choose CSV File';
+                    }, 3000);
+                } else {
+                    alert('No valid data found in CSV. Please ensure format is: Postcode, Value');
+                }
+            };
+            
+            reader.readAsText(file);
+        });
+
+        function addJobEntry() {
+            const jobsList = document.getElementById('jobsList');
+            const jobEntry = document.createElement('div');
+            jobEntry.className = 'job-entry';
+            jobEntry.innerHTML = `
+                <input type="text" placeholder="Postcode (e.g., SW1A 1AA)" class="postcode-input">
+                <input type="number" placeholder="Job Value (£)" class="value-input">
+                <button class="btn btn-remove" onclick="this.parentElement.remove()">Remove</button>
+            `;
+            jobsList.appendChild(jobEntry);
+        }
+
+        function analyzeData() {
+            const jobs = [];
+            const jobEntries = document.querySelectorAll('.job-entry');
+            
+            jobEntries.forEach(entry => {
+                const postcode = entry.querySelector('.postcode-input').value;
+                const value = parseFloat(entry.querySelector('.value-input').value);
+                
+                if (postcode && value && !isNaN(value)) {
+                    jobs.push({ postcode: postcode.trim(), value: value });
+                }
+            });
+
+            if (jobs.length < 5) {
+                alert('Please enter at least 5 jobs for accurate analysis');
+                return;
+            }
+
+            console.log('Analyzing jobs:', jobs); // Debug log
+
+            // Show loading
+            document.querySelector('.loading').style.display = 'block';
+
+            // Simulate processing
+            setTimeout(() => {
+                document.querySelector('.loading').style.display = 'none';
+                showResults(jobs);
+            }, 2000);
+        }
+
+        function showResults(jobs) {
+            // Group jobs by postcode area (letters only)
+            const postcodeData = {};
+            let totalRevenue = 0;
+
+            jobs.forEach(job => {
+                // Extract just the letters from the postcode (e.g., SW from SW1A 1AA)
+                const postcodeStr = String(job.postcode).trim().toUpperCase();
+                const matches = postcodeStr.match(/^([A-Z]+)/);
+                
+                if (!matches) return; // Skip invalid postcodes
+                
+                const area = matches[1]; // Just the letters (SW, NW, E, etc.)
+                
+                if (!postcodeData[area]) {
+                    postcodeData[area] = {
+                        revenue: 0,
+                        jobCount: 0,
+                        avgJobValue: 0
+                    };
+                }
+                postcodeData[area].revenue += job.value;
+                postcodeData[area].jobCount += 1;
+                totalRevenue += job.value;
+            });
+
+            // Calculate averages and sort by revenue
+            const sortedAreas = Object.entries(postcodeData)
+                .map(([area, data]) => ({
+                    area,
+                    revenue: data.revenue,
+                    jobCount: data.jobCount,
+                    avgJobValue: data.revenue / data.jobCount,
+                    percentage: (data.revenue / totalRevenue * 100).toFixed(1)
+                }))
+                .sort((a, b) => b.revenue - a.revenue);
+
+            // Find 80% revenue threshold
+            let cumulativeRevenue = 0;
+            let profitableAreas = [];
+            for (let area of sortedAreas) {
+                cumulativeRevenue += area.revenue;
+                profitableAreas.push(area);
+                if (cumulativeRevenue >= totalRevenue * 0.8) break;
+            }
+
+            // Get top 3 and bottom 3 areas
+            const top3Areas = sortedAreas.slice(0, 3);
+            const bottom3Areas = sortedAreas.slice(-3).reverse(); // Reverse to show worst first
+
+            // Calculate averages for comparison
+            const topAvgValue = top3Areas.reduce((sum, area) => sum + area.avgJobValue, 0) / top3Areas.length;
+            const bottomAvgValue = bottom3Areas.reduce((sum, area) => sum + area.avgJobValue, 0) / bottom3Areas.length;
+            const bottomTotalJobs = bottom3Areas.reduce((sum, area) => sum + area.jobCount, 0);
+            const potentialDifference = (topAvgValue - bottomAvgValue) * bottomTotalJobs;
+
+            // Ensure we have results to display
+            if (profitableAreas.length === 0) {
+                alert('Unable to analyze data. Please check your input.');
+                document.querySelector('.loading').style.display = 'none';
+                return;
+            }
+
+            // Generate results HTML
+            const resultsHTML = `
+                <div class="card">
+                    <h2 style="font-size: 2em; margin-bottom: 32px; text-align: center;">🎯 Your Profit Postcode Analysis</h2>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <h3>${profitableAreas.length}</h3>
+                            <p>Key Profitable Areas</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>£${Math.round(totalRevenue).toLocaleString()}</h3>
+                            <p>Total Revenue Analyzed</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>£${Math.round(profitableAreas.reduce((sum, a) => sum + a.avgJobValue, 0) / profitableAreas.length).toLocaleString()}</h3>
+                            <p>Avg Job Value in Profit Zones</p>
+                        </div>
+                    </div>
+
+                    <h3 style="margin: 32px 0 24px;">Your Top Profitable Postcodes:</h3>
+                    ${profitableAreas.map((area, index) => `
+                        <div class="result-card">
+                            <h4>${index + 1}. ${area.area} Area</h4>
+                            <p><strong>Revenue:</strong> £${area.revenue.toLocaleString()} (${area.percentage}% of total)</p>
+                            <p><strong>Number of Jobs:</strong> ${area.jobCount}</p>
+                            <p><strong>Average Job Value:</strong> £${Math.round(area.avgJobValue).toLocaleString()}</p>
+                            <div class="profit-bar">
+                                <div class="profit-fill" style="width: ${area.percentage}%">
+                                    ${area.percentage}%
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="opportunity-section">
+                    <h3 style="font-size: 1.75em; margin-bottom: 24px; text-align: center;">💰 Your Profit Opportunity</h3>
+                    
+                    <div class="comparison-grid">
+                        <div class="comparison-card top">
+                            <h4>Top 3 Areas</h4>
+                            ${top3Areas.map(area => `
+                                <p><strong>${area.area}:</strong> £${Math.round(area.avgJobValue).toLocaleString()} avg per job</p>
+                            `).join('')}
+                            <p style="margin-top: 16px; font-size: 1.25em;">
+                                <strong>Average: £${Math.round(topAvgValue).toLocaleString()}</strong>
+                            </p>
+                        </div>
+                        
+                        <div class="comparison-card bottom">
+                            <h4>Bottom 3 Areas</h4>
+                            ${bottom3Areas.map(area => `
+                                <p><strong>${area.area}:</strong> £${Math.round(area.avgJobValue).toLocaleString()} avg per job</p>
+                            `).join('')}
+                            <p style="margin-top: 16px; font-size: 1.25em;">
+                                <strong>Average: £${Math.round(bottomAvgValue).toLocaleString()}</strong>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="potential-box">
+                        <p style="font-size: 1.1em;">You completed <strong>${bottomTotalJobs} jobs</strong> in your bottom areas</p>
+                        <p style="font-size: 1.25em; margin-top: 16px;">Focusing on your top areas instead could mean an additional</p>
+                        <div class="amount">£${Math.round(potentialDifference).toLocaleString()}</div>
+                        <p style="color: var(--text-light);">in potential revenue</p>
+                    </div>
+                </div>
+
+                <div class="cta-section">
+                    <h2>🚀 Ready to Get More High-Value Jobs in Your Best Areas?</h2>
+                    <p style="font-size: 1.25em; margin-bottom: 16px;">
+                        Stop wasting time in ${bottom3Areas[0].area} for £${Math.round(bottom3Areas[0].avgJobValue)} jobs.<br>
+                        Start getting more £${Math.round(top3Areas[0].avgJobValue)} jobs in ${top3Areas[0].area}!
+                    </p>
+                    <p style="font-size: 1.1em; margin-bottom: 32px; opacity: 0.95;">
+                        Our proven Facebook ads system helps home improvement businesses generate 30-50 qualified leads per month, by targeting their most profitable areas — creating the predictable, profitable pipeline you've been looking for
+                    </p>
+                    <a href="https://www.leadsalchemist.com/calendar-page" class="btn" target="_blank">
+                        Get Your Free Facebook Ads Strategy Session
+                    </a>
+                    <p style="margin-top: 24px; font-size: 0.9em; opacity: 0.9;">
+                        Limited spots available - Only working with 5 new businesses this month
+                    </p>
+                </div>
+            `;
+
+            document.getElementById('results').innerHTML = resultsHTML;
+            document.getElementById('results').style.display = 'block';
+            
+            // Scroll to results with offset for sticky header
+            setTimeout(() => {
+                const resultsElement = document.getElementById('results');
+                const headerHeight = document.querySelector('.header').offsetHeight;
+                const offset = 20; // Additional padding
+                const elementPosition = resultsElement.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerHeight - offset;
+                
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
+            }, 100);
+
+            // In a real implementation, you would send this data to your server
+            console.log('Analysis complete:', { profitableAreas });
+        }
+
+        // Add some initial job entries
+        for (let i = 0; i < 4; i++) {
+            addJobEntry();
+        }
+    </script>
+</body>
+</html>
