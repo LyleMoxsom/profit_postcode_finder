@@ -559,9 +559,9 @@
         <div class="card">
             <div class="step-header">
                 <div class="step-number">1</div>
-                <h2 class="step-title">Add Your Recent Jobs (Last 6 Months)</h2>
+                <h2 class="step-title">Add Your Recent Jobs List** **(Will Analyse 50)</h2>
             </div>
-            <p style="color: var(--text-light); margin-bottom: 24px;">Upload a CSV or enter manually - we need at least 10 jobs for accurate results</p>
+            <p style="color: var(--text-light); margin-bottom: 24px;">Upload your jobs CSV file - we'll automatically analyze up to 50 jobs for accurate results</p>
             
             <div class="upload-area">
                 <div class="upload-icon">📁</div>
@@ -576,15 +576,8 @@
                 Analyze My Profitable Postcodes
             </button>
 
-            <div style="margin-top: 32px;">
-                <h4 style="margin-bottom: 16px; color: var(--text-dark);">✏️ Manual Entry</h4>
-                <div id="jobsList">
-                    <div class="job-entry">
-                        <input type="text" placeholder="Postcode (e.g., SW1A 1AA)" class="postcode-input">
-                        <input type="number" placeholder="Job Value (£)" class="value-input">
-                    </div>
-                </div>
-                <button class="btn btn-secondary" onclick="addJobEntry()" style="margin-top: 12px;">+ Add Another Job</button>
+            <div id="jobsList" style="display: none; margin-top: 32px;">
+                <!-- Jobs will appear here after upload -->
             </div>
         </div>
 
@@ -637,8 +630,9 @@
                 return [];
             }
             
-            // Parse data rows
-            for (let i = 1; i < lines.length; i++) {
+            // Parse data rows (limit to 50 jobs)
+            const maxJobs = 50;
+            for (let i = 1; i < lines.length && jobs.length < maxJobs; i++) {
                 const line = lines[i];
                 if (!line) continue;
                 
@@ -693,19 +687,20 @@
                 const jobs = parseCSV(csvData);
                 
                 if (jobs.length > 0) {
-                    // Clear existing manual entries
-                    document.getElementById('jobsList').innerHTML = '';
+                    // Show the jobs list section
+                    const jobsList = document.getElementById('jobsList');
+                    jobsList.style.display = 'block';
+                    jobsList.innerHTML = '<h4 style="margin-bottom: 16px; color: var(--text-dark);">📊 Uploaded Jobs Preview</h4>';
                     
                     // Add parsed jobs to the form
                     jobs.forEach(job => {
                         const jobEntry = document.createElement('div');
                         jobEntry.className = 'job-entry';
                         jobEntry.innerHTML = `
-                            <input type="text" placeholder="Postcode (e.g., SW1A 1AA)" class="postcode-input" value="${job.postcode}">
-                            <input type="number" placeholder="Job Value (£)" class="value-input" value="${job.value}">
-                            <button class="btn btn-remove" onclick="this.parentElement.remove()">Remove</button>
+                            <input type="text" placeholder="Postcode (e.g., SW1A 1AA)" class="postcode-input" value="${job.postcode}" readonly>
+                            <input type="number" placeholder="Job Value (£)" class="value-input" value="${job.value}" readonly>
                         `;
-                        document.getElementById('jobsList').appendChild(jobEntry);
+                        jobsList.appendChild(jobEntry);
                     });
                     
                     // Update file input label
@@ -721,17 +716,8 @@
             reader.readAsText(file);
         });
 
-        function addJobEntry() {
-            const jobsList = document.getElementById('jobsList');
-            const jobEntry = document.createElement('div');
-            jobEntry.className = 'job-entry';
-            jobEntry.innerHTML = `
-                <input type="text" placeholder="Postcode (e.g., SW1A 1AA)" class="postcode-input">
-                <input type="number" placeholder="Job Value (£)" class="value-input">
-                <button class="btn btn-remove" onclick="this.parentElement.remove()">Remove</button>
-            `;
-            jobsList.appendChild(jobEntry);
-        }
+        // Remove the manual entry function as it's no longer needed
+        // Add some initial job entries - removed as manual entry is disabled
 
         function analyzeData() {
             const jobs = [];
@@ -747,7 +733,7 @@
             });
 
             if (jobs.length < 5) {
-                alert('Please enter at least 5 jobs for accurate analysis');
+                alert('Please upload a CSV file with at least 5 jobs for accurate analysis');
                 return;
             }
 
@@ -929,10 +915,7 @@
             console.log('Analysis complete:', { profitableAreas });
         }
 
-        // Add some initial job entries
-        for (let i = 0; i < 4; i++) {
-            addJobEntry();
-        }
+        // Initialize the app - no initial entries needed since manual entry is disabled
     </script>
 </body>
 </html>
