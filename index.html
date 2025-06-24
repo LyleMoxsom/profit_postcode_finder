@@ -566,10 +566,10 @@
             <div class="upload-area">
                 <div class="upload-icon">📁</div>
                 <h4>Quick Upload (Recommended)</h4>
-                <p>Export your completed jobs spreadsheet as a CSV file with columns named: <strong>Postcode</strong>, <strong>Job Value</strong> and upload it here</p>
+                <p>Export your completed jobs spreadsheet as a CSV file with columns for <strong>Postcode</strong> and <strong>Revenue</strong> (or similar) and upload it here</p>
                 <label for="csvFile" class="file-input-label">Choose CSV File</label>
                 <input type="file" id="csvFile" accept=".csv">
-                <p style="font-size: 14px; margin-top: 12px; color: var(--text-light);">Example format: SW1A 1AA, 2500</p>
+                <p style="font-size: 14px; margin-top: 12px; color: var(--text-light);">We'll automatically find your postcode and revenue columns - no formatting needed!</p>
             </div>
 
             <button class="btn btn-primary" onclick="analyzeData()">
@@ -609,23 +609,73 @@
     <script>
         // CSV parsing function
         function parseCSV(text) {
-            const lines = text.split('\n');
+            const lines = text.split('\n').map(line => line.trim()).filter(line => line);
+            if (lines.length < 2) return []; // Need at least header + 1 data row
+            
             const jobs = [];
             
-            for (let line of lines) {
-                line = line.trim();
+            // Parse header row to find column indices
+            const headerLine = lines[0];
+            const headers = headerLine.split(/[,;]/).map(h => h.trim().replace(/['"]/g, '').toLowerCase());
+            
+            // Find postcode and revenue column indices
+            let postcodeIndex = -1;
+            let revenueIndex = -1;
+            
+            headers.forEach((header, index) => {
+                if (header.includes('postcode') || header.includes('post code')) {
+                    postcodeIndex = index;
+                }
+                if (header.includes('revenue') || header.includes('value') || header.includes('price') || header.includes('amount') || header.includes('job value')) {
+                    revenueIndex = index;
+                }
+            });
+            
+            // If we can't find the columns, return empty array
+            if (postcodeIndex === -1 || revenueIndex === -1) {
+                console.warn('Could not find postcode or revenue columns in CSV');
+                return [];
+            }
+            
+            // Parse data rows
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i];
                 if (!line) continue;
                 
                 // Handle both comma and semicolon separators
-                const parts = line.split(/[,;]/).map(p => p.trim());
+                const parts = line.split(/[,;]/).map(p => p.trim().replace(/['"]/g, ''));
                 
-                if (parts.length >= 2) {
-                    const postcode = parts[0].replace(/['"]/g, '').trim();
-                    const value = parseFloat(parts[1].replace(/[£$,]/g, ''));
+                if (parts.length > Math.max(postcodeIndex, revenueIndex)) {
+                    const postcodeRaw = parts[postcodeIndex];
+                    const revenueRaw = parts[revenueIndex];
                     
-                    if (postcode && !isNaN(value)) {
-                        jobs.push({ postcode, value });
+                    // Skip empty, null, or N/A entries
+                    if (!postcodeRaw || !revenueRaw || 
+                        postcodeRaw.toLowerCase() === 'n/a' || 
+                        revenueRaw.toLowerCase() === 'n/a' ||
+                        postcodeRaw.toLowerCase() === 'null' ||
+                        revenueRaw.toLowerCase() === 'null' ||
+                        postcodeRaw === '' || revenueRaw === '') {
+                        continue;
                     }
+                    
+                    // Clean and validate postcode
+                    const postcode = postcodeRaw.trim().toUpperCase();
+                    // Basic UK postcode validation (letters and numbers only, reasonable length)
+                    if (!/^[A-Z0-9\s]{2,8}$/.test(postcode)) {
+                        continue;
+                    }
+                    
+                    // Clean and validate revenue
+                    const cleanedRevenue = revenueRaw.replace(/[£$,\s]/g, '');
+                    const value = parseFloat(cleanedRevenue);
+                    
+                    // Skip if not a valid positive number
+                    if (isNaN(value) || value <= 0 || value > 1000000) { // Reasonable upper limit
+                        continue;
+                    }
+                    
+                    jobs.push({ postcode, value });
                 }
             }
             
@@ -659,12 +709,12 @@
                     });
                     
                     // Update file input label
-                    document.querySelector('.file-input-label').textContent = `✓ Loaded ${jobs.length} jobs`;
+                    document.querySelector('.file-input-label').textContent = `✓ Loaded ${jobs.length} valid jobs`;
                     setTimeout(() => {
                         document.querySelector('.file-input-label').textContent = 'Choose CSV File';
                     }, 3000);
                 } else {
-                    alert('No valid data found in CSV. Please ensure format is: Postcode, Value');
+                    alert('No valid data found. Please ensure your CSV has columns for postcode and revenue/value.');
                 }
             };
             
@@ -739,7 +789,7 @@
                 totalRevenue += job.value;
             });
 
-            // Calculate averages and sort by revenue
+            // Calculate averages and sort by average job value (most profitable per job)
             const sortedAreas = Object.entries(postcodeData)
                 .map(([area, data]) => ({
                     area,
@@ -748,16 +798,11 @@
                     avgJobValue: data.revenue / data.jobCount,
                     percentage: (data.revenue / totalRevenue * 100).toFixed(1)
                 }))
-                .sort((a, b) => b.revenue - a.revenue);
+                .sort((a, b) => b.avgJobValue - a.avgJobValue); // Sort by average job value instead
 
-            // Find 80% revenue threshold
-            let cumulativeRevenue = 0;
-            let profitableAreas = [];
-            for (let area of sortedAreas) {
-                cumulativeRevenue += area.revenue;
-                profitableAreas.push(area);
-                if (cumulativeRevenue >= totalRevenue * 0.8) break;
-            }
+            // Take top 3 areas that represent high-value opportunities
+            // Focus on areas with good sample size (at least 2 jobs) and high average values
+            const profitableAreas = sortedAreas.filter(area => area.jobCount >= 2).slice(0, 3);
 
             // Get top 3 and bottom 3 areas
             const top3Areas = sortedAreas.slice(0, 3);
@@ -784,28 +829,28 @@
                     <div class="stats-grid">
                         <div class="stat-card">
                             <h3>${profitableAreas.length}</h3>
-                            <p>Key Profitable Areas</p>
+                            <p>High-Value Areas Found</p>
                         </div>
                         <div class="stat-card">
                             <h3>£${Math.round(totalRevenue).toLocaleString()}</h3>
                             <p>Total Revenue Analyzed</p>
                         </div>
                         <div class="stat-card">
-                            <h3>£${Math.round(profitableAreas.reduce((sum, a) => sum + a.avgJobValue, 0) / profitableAreas.length).toLocaleString()}</h3>
-                            <p>Avg Job Value in Profit Zones</p>
+                            <h3>£${Math.round(sortedAreas[0]?.avgJobValue || 0).toLocaleString()}</h3>
+                            <p>Highest Avg Job Value</p>
                         </div>
                     </div>
 
-                    <h3 style="margin: 32px 0 24px;">Your Top Profitable Postcodes:</h3>
+                    <h3 style="margin: 32px 0 24px;">Your Highest-Value Postcode Areas:</h3>
                     ${profitableAreas.map((area, index) => `
                         <div class="result-card">
-                            <h4>${index + 1}. ${area.area} Area</h4>
-                            <p><strong>Revenue:</strong> £${area.revenue.toLocaleString()} (${area.percentage}% of total)</p>
-                            <p><strong>Number of Jobs:</strong> ${area.jobCount}</p>
+                            <h4>${index + 1}. ${area.area} Area - £${Math.round(area.avgJobValue).toLocaleString()} per job</h4>
                             <p><strong>Average Job Value:</strong> £${Math.round(area.avgJobValue).toLocaleString()}</p>
+                            <p><strong>Number of Jobs:</strong> ${area.jobCount}</p>
+                            <p><strong>Total Revenue:</strong> £${area.revenue.toLocaleString()} (${area.percentage}% of total)</p>
                             <div class="profit-bar">
-                                <div class="profit-fill" style="width: ${area.percentage}%">
-                                    ${area.percentage}%
+                                <div class="profit-fill" style="width: ${Math.min(100, (area.avgJobValue / sortedAreas[0].avgJobValue) * 100)}%">
+                                    £${Math.round(area.avgJobValue).toLocaleString()}
                                 </div>
                             </div>
                         </div>
@@ -813,13 +858,13 @@
                 </div>
 
                 <div class="opportunity-section">
-                    <h3 style="font-size: 1.75em; margin-bottom: 24px; text-align: center;">💰 Your Profit Opportunity</h3>
+                    <h3 style="font-size: 1.75em; margin-bottom: 24px; text-align: center;">💰 Your Job Value Opportunity</h3>
                     
                     <div class="comparison-grid">
                         <div class="comparison-card top">
-                            <h4>Top 3 Areas</h4>
+                            <h4>Highest Value Areas</h4>
                             ${top3Areas.map(area => `
-                                <p><strong>${area.area}:</strong> £${Math.round(area.avgJobValue).toLocaleString()} avg per job</p>
+                                <p><strong>${area.area}:</strong> £${Math.round(area.avgJobValue).toLocaleString()} avg per job (${area.jobCount} jobs)</p>
                             `).join('')}
                             <p style="margin-top: 16px; font-size: 1.25em;">
                                 <strong>Average: £${Math.round(topAvgValue).toLocaleString()}</strong>
@@ -827,9 +872,9 @@
                         </div>
                         
                         <div class="comparison-card bottom">
-                            <h4>Bottom 3 Areas</h4>
+                            <h4>Lowest Value Areas</h4>
                             ${bottom3Areas.map(area => `
-                                <p><strong>${area.area}:</strong> £${Math.round(area.avgJobValue).toLocaleString()} avg per job</p>
+                                <p><strong>${area.area}:</strong> £${Math.round(area.avgJobValue).toLocaleString()} avg per job (${area.jobCount} jobs)</p>
                             `).join('')}
                             <p style="margin-top: 16px; font-size: 1.25em;">
                                 <strong>Average: £${Math.round(bottomAvgValue).toLocaleString()}</strong>
@@ -838,10 +883,10 @@
                     </div>
                     
                     <div class="potential-box">
-                        <p style="font-size: 1.1em;">You completed <strong>${bottomTotalJobs} jobs</strong> in your bottom areas</p>
-                        <p style="font-size: 1.25em; margin-top: 16px;">Focusing on your top areas instead could mean an additional</p>
+                        <p style="font-size: 1.1em;">You completed <strong>${bottomTotalJobs} jobs</strong> in your lowest-value areas</p>
+                        <p style="font-size: 1.25em; margin-top: 16px;">Focusing on your highest-value areas instead could mean an additional</p>
                         <div class="amount">£${Math.round(potentialDifference).toLocaleString()}</div>
-                        <p style="color: var(--text-light);">in potential revenue</p>
+                        <p style="color: var(--text-light);">in potential revenue from the same number of jobs</p>
                     </div>
                 </div>
 
@@ -852,7 +897,7 @@
                         Start getting more £${Math.round(top3Areas[0].avgJobValue)} jobs in ${top3Areas[0].area}!
                     </p>
                     <p style="font-size: 1.1em; margin-bottom: 32px; opacity: 0.95;">
-                        Our proven Facebook ads system helps home improvement businesses generate 30-50 qualified leads per month, by targeting their most profitable areas — creating the predictable, profitable pipeline you've been looking for
+                        Our proven Facebook ads system helps home improvement businesses scale their revenue, by targeting their most profitable areas — creating the predictable, profitable pipeline you've been looking for
                     </p>
                     <a href="https://www.leadsalchemist.com/calendar-page" class="btn" target="_blank">
                         Get Your Free Facebook Ads Strategy Session
