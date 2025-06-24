@@ -559,17 +559,17 @@
         <div class="card">
             <div class="step-header">
                 <div class="step-number">1</div>
-                <h2 class="step-title">Add Your Recent Jobs List (Will Analyse 50)</h2>
+                <h2 class="step-title">Add Your Recent Jobs List</h2>
             </div>
             <p style="color: var(--text-light); margin-bottom: 24px;">Upload your jobs CSV file - we'll automatically analyze up to 50 jobs for accurate results</p>
             
             <div class="upload-area">
                 <div class="upload-icon">📁</div>
-                <h4>Quick Upload (Recommended)</h4>
-                <p>Export your completed jobs spreadsheet as a CSV file with columns for <strong>Postcode</strong> and <strong>Revenue</strong> (or similar) and upload it here</p>
+                <h4>Quick Upload</h4>
+                <p>Export your completed jobs spreadsheet as a CSV file with columns for <strong>Postcode</strong> and <strong>Revenue</strong> and upload it here</p>
                 <label for="csvFile" class="file-input-label">Choose CSV File</label>
                 <input type="file" id="csvFile" accept=".csv">
-                <p style="font-size: 14px; margin-top: 12px; color: var(--text-light);">We'll automatically find your postcode and revenue columns - no formatting needed!</p>
+                <p style="font-size: 14px; margin-top: 12px; color: var(--text-light);">We'll automatically skip messy entries - no formatting needed!</p>
             </div>
 
             <button class="btn btn-primary" onclick="analyzeData()">
